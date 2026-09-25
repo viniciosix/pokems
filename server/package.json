@@ -1,0 +1,15 @@
+{
+  "name": "pokems-server",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src.js",
+    "dev": "node --watch src.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "lowdb": "^7.0.1",
+    "socket.io": "^4.8.1"
+  }
+}
