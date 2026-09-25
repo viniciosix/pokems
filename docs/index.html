@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>PokeMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root{font-family:Inter,system-ui,sans-serif;color-scheme:dark;background:#07111d;color:#eef6ff}
+    *{box-sizing:border-box}body{margin:0;background:#07111d}#map{height:100vh;width:100vw}
+    .top{position:fixed;z-index:1000;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:center;pointer-events:none}
+    .card{pointer-events:auto;background:rgba(7,17,29,.92);backdrop-filter:blur(12px);border:1px solid #26384b;border-radius:14px;padding:10px 12px;box-shadow:0 8px 30px #0008}
+    .brand{font-weight:900;font-size:18px}.muted{font-size:12px;color:#9fb1c4}
+    input{background:#0d1b2a;border:1px solid #2b4056;color:#fff;border-radius:10px;padding:8px 10px;outline:none;width:170px}
+    .status{margin-left:auto;max-width:46vw}.pill{display:inline-block;padding:2px 7px;border-radius:999px;background:#18324e;font-size:11px}
+    .setup{position:fixed;z-index:1100;left:12px;bottom:12px;right:12px;display:flex;justify-content:center;pointer-events:none}
+    .setup .card{max-width:680px;width:100%;pointer-events:auto}
+    button{border:0;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+    .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#0c1724;color:#fff}
+    @media(max-width:650px){.top{flex-wrap:wrap}.status{margin-left:0;max-width:100%;width:100%}input{width:150px}}
+  </style>
+</head>
+<body>
+<div class="top">
+  <div class="card"><div class="brand">PokeMS</div><div class="muted"><span id="count">0</span> detecções ativas</div></div>
+  <div class="card"><input id="filter" placeholder="Filtrar: Gible..."></div>
+  <div class="card status"><span class="pill" id="state">backend não configurado</span> <span class="muted" id="detail"></span></div>
+</div>
+<div id="map"></div>
+<div class="setup" id="setup">
+  <div class="card">
+    <div style="font-weight:800;margin-bottom:6px">Conectar ao backend</div>
+    <div class="muted" style="margin-bottom:8px">Cole a URL pública do servidor PokeMS.</div>
+    <div style="display:flex;gap:8px">
+      <input id="api" style="flex:1;width:auto" placeholder="https://...">
+      <button id="save">Salvar</button>
+    </div>
+  </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map=L.map('map',{zoomControl:false}).setView([-20.4428,-54.6464],13);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+
+let spawns=[],markers=[];
+const filter=document.getElementById('filter');
+const apiInput=document.getElementById('api');
+let api=(localStorage.getItem('pokems_api')||'').replace(/\/$/,'');
+apiInput.value=api;
+
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+
+function render(){
+  markers.forEach(m=>m.remove());markers=[];
+  const q=filter.value.trim().toLowerCase();
+  const view=spawns.filter(s=>!q||String(s.species).toLowerCase().includes(q));
+  document.getElementById('count').textContent=view.length;
+  for(const s of view){
+    const age=Math.max(0,Math.floor((Date.now()-new Date(s.last_seen))/1000));
+    const m=L.circleMarker([s.lat,s.lon],{radius:8,weight:2,fillOpacity:.85});
+    m.bindPopup(`<b>${esc(s.species)}</b><br>confiança ${Math.round((s.confidence||0)*100)}%<br>precisão ~${Math.round(s.accuracy_m||0)} m<br>visto há ${age}s<br><a target="_blank" href="https://www.google.com/maps?q=${s.lat},${s.lon}">abrir rota</a>`);
+    m.addTo(map);markers.push(m);
+  }
+}
+
+function showStatus(s){
+  const el=document.getElementById('state');
+  const d=document.getElementById('detail');
+  if(!api){el.textContent='backend não configurado';d.textContent='';return}
+  if(!s||!s.updated_at){el.textContent='scanner: offline';d.textContent='';return}
+  const fresh=Date.now()-new Date(s.updated_at)<90000;
+  el.textContent=fresh?'scanner: ativo':'scanner: parado';
+  d.textContent=s.mode?` ${s.mode} • ponto ${s.index??'-'}/${s.total??'-'}`:'';
+}
+
+async function load(){
+  if(!api){showStatus(null);return}
+  try{
+    const [a,b]=await Promise.all([
+      fetch(api+'/api/spawns').then(r=>r.json()),
+      fetch(api+'/api/status').then(r=>r.json()),
+    ]);
+    spawns=Array.isArray(a)?a:[];
+    render();
+    showStatus(b);
+  }catch(e){
+    document.getElementById('state').textContent='backend indisponível';
+  }
+}
+
+document.getElementById('save').onclick=()=>{
+  api=apiInput.value.trim().replace(/\/$/,'');
+  localStorage.setItem('pokems_api',api);
+  document.getElementById('setup').style.display='none';
+  load();
+};
+
+if(api)document.getElementById('setup').style.display='none';
+filter.addEventListener('input',render);
+load();
+setInterval(load,15000);
+</script>
+</body>
+</html>
