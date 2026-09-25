@@ -1,4 +1,4 @@
-import { cleanup, json, preflight, readState } from "./_lib.mjs";
+import { cleanup, json, preflight, readState } from "../lib.mjs";
 
 export default async (req) => {
   const p = preflight(req);
