@@ -1,44 +1,55 @@
 # PokeMS
 
-Radar pessoal experimental para visualizar detecções de Pokémon em um mapa de Campo Grande/MS.
+Radar pessoal experimental de Pokémon para Mato Grosso do Sul, com frontend e backend preparados para rodar no mesmo projeto Netlify.
 
-## Já está no repositório
+## Interface
 
-- mapa web em Leaflet/OpenStreetMap;
-- API Node.js + Socket.IO;
-- scanner Python via ADB;
-- reconhecimento visual da tela "Por perto";
-- rota de varredura em grade;
-- helper Android de localização de teste;
-- frontend em `docs/` preparado para GitHub Pages.
+A nova interface é mobile-first e inspirada em mapas de rastreamento:
 
-## Site
+- mapa grande em cartão claro;
+- identidade azul/amarela inspirada em Pokémon;
+- busca por espécie;
+- favoritos persistidos no navegador;
+- filtro "somente favoritos";
+- filtro de sinais recentes;
+- distância máxima usando o GPS do navegador;
+- confiança mínima;
+- status do scanner;
+- botão para abrir rota;
+- alertas locais para espécies favoritas;
+- sprites obtidos pela PokéAPI quando disponíveis.
 
-O workflow `.github/workflows/pages.yml` publica automaticamente o conteúdo de `docs/` no GitHub Pages.
+## Backend no Netlify
 
-Quando o Pages estiver ativo, o endereço esperado é:
+O backend foi convertido para Netlify Functions:
 
-`https://viniciosix.github.io/pokems/`
+- `GET /api/health`
+- `GET /api/spawns`
+- `GET|POST /api/status`
+- `POST /api/detections`
+- `POST /api/clear`
 
-A página estática pede a URL pública do backend na primeira abertura e salva essa URL no navegador.
+Os dados persistem em **Netlify Blobs**, então não dependem do filesystem temporário das Functions.
 
-## Rodar o backend
+### Variáveis de ambiente
 
-```bash
-cp .env.example .env
-# troque RADARMS_TOKEN no arquivo .env
-docker compose up -d --build
+No Netlify, configure:
+
+```
+RADARMS_TOKEN=coloque-um-token-longo-aqui
+SPAWN_TTL_MINUTES=25
 ```
 
-Sem Docker:
+O token deve ser o mesmo usado em `scanner/config.yaml`.
 
-```bash
-cd server
-npm install
-RADARMS_TOKEN=seu-token npm start
-```
+## Deploy
 
-A API abre na porta `8787`.
+O projeto já contém `netlify.toml`:
+
+- publish: `public/`
+- functions: `netlify/functions/`
+
+Conecte o repositório `viniciosix/pokems` a um projeto Netlify e ele fica full-stack no mesmo domínio.
 
 ## Scanner
 
@@ -48,18 +59,24 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp config.example.yaml config.yaml
-python radar_scanner.py --config config.yaml --dry-run
 ```
 
-Depois ajuste o IP/URL do backend, token e calibração da tela em `scanner/config.yaml`.
+Edite `config.yaml` com o domínio Netlify e o mesmo `RADARMS_TOKEN`.
+
+Teste primeiro a rota sem mover o aparelho:
+
+```bash
+python radar_scanner.py --config config.yaml --dry-run
+```
 
 ## Estrutura
 
 ```text
-server/                 API + site ao vivo
-scanner/                ADB + rota + reconhecimento visual
-android-mock-location/  app auxiliar Android
-docs/                   frontend publicado no GitHub Pages
+public/                  frontend Netlify
+netlify/functions/       API serverless + Netlify Blobs
+scanner/                 ADB + rota + reconhecimento visual
+android-mock-location/   helper Android
+server/                  backend Node legado/local
 ```
 
 > Projeto experimental. Localização simulada pode ser recusada pelo cliente do jogo e pode colocar uma conta secundária em risco.
