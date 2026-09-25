@@ -3,14 +3,7 @@
   "private": true,
   "version": "0.2.0",
   "type": "module",
-  "scripts": {
-    "dev": "netlify dev",
-    "start:legacy": "npm --prefix server start"
-  },
   "dependencies": {
-    "@netlify/blobs": "^10.0.10"
-  },
-  "devDependencies": {
-    "netlify-cli": "^23.5.0"
+    "@netlify/blobs": "^11.1.1"
   }
 }
