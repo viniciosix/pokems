@@ -1,4 +1,4 @@
-import { json, preflight } from "./_lib.mjs";
+import { json, preflight } from "../lib.mjs";
 
 export default async (req) => {
   const p = preflight(req);
