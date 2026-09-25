@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import {
   authorized, cleanup, json, normalizeSpecies, preflight, readState, writeState
-} from "./_lib.mjs";
+} from "../lib.mjs";
 
 export default async (req) => {
   const p = preflight(req);
