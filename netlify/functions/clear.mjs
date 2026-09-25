@@ -1,4 +1,4 @@
-import { authorized, json, preflight, readState, writeState } from "./_lib.mjs";
+import { authorized, json, preflight, readState, writeState } from "../lib.mjs";
 
 export default async (req) => {
   const p = preflight(req);
