@@ -1,0 +1,8 @@
+node_modules/
+.env
+scanner/.venv/
+scanner/__pycache__/
+scanner/captures/
+server/data/
+*.log
+.DS_Store
