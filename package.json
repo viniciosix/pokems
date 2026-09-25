@@ -1,0 +1,9 @@
+{
+  "name": "pokems",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "npm --prefix server start",
+    "dev": "npm --prefix server run dev"
+  }
+}
