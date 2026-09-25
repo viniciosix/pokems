@@ -143,6 +143,7 @@ async function renderMarkers() {
     const distance = state.userPos ? haversine(state.userPos, [s.lat, s.lon]) : null;
     const conf = Math.round(Number(s.confidence || 0) * 100);
     const maps = `https://www.google.com/maps?q=${encodeURIComponent(s.lat + "," + s.lon)}`;
+    const speciesArg = encodeURIComponent(String(s.species)).replace(/'/g, "%27");
     m.bindPopup(`
       <div class="popup-head">
         ${sprite ? `<img class="popup-sprite" src="${sprite}" alt="">` : ""}
@@ -153,7 +154,7 @@ async function renderMarkers() {
         ${distance != null ? ` · <b>${distance.toFixed(distance < 10 ? 1 : 0)} km</b>` : ""}
       </div>
       <div class="popup-actions">
-        <button onclick='toggleFavorite(${JSON.stringify(String(s.species))})'>${favorite ? "★ Remover" : "☆ Favoritar"}</button>
+        <button onclick="toggleFavorite(decodeURIComponent('${speciesArg}'))">${favorite ? "★ Remover" : "☆ Favoritar"}</button>
         <a href="${maps}" target="_blank" rel="noopener">Abrir rota ↗</a>
       </div>
     `);
@@ -226,7 +227,7 @@ async function load() {
     const newOnes = (Array.isArray(spawns) ? spawns : []).filter((s) => !state.seenIds.has(s.id));
     state.spawns = Array.isArray(spawns) ? spawns : [];
     state.scanner = status || {};
-    notifyFavorites(newOnes);
+    if (state.lastLoaded) notifyFavorites(newOnes);
     state.spawns.forEach(s => state.seenIds.add(s.id));
     state.lastLoaded = new Date();
 
