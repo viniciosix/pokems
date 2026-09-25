@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#16aeca">
+  <title>PokeMS — Radar Pokémon</title>
+  <meta name="description" content="Radar pessoal de Pokémon em Mato Grosso do Sul.">
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="sky-glow sky-glow-a"></div>
+  <div class="sky-glow sky-glow-b"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="PokeMS">
+      <span class="brand-poke">POKÉ</span><span class="brand-ms">MS</span>
+      <small>RADAR</small>
+    </a>
+
+    <nav class="nav-actions">
+      <button class="nav-btn active" data-tab="radar">
+        <span>◉</span><b>Radar</b>
+      </button>
+      <button class="nav-btn" data-tab="favorites">
+        <span>★</span><b>Favoritos</b>
+      </button>
+      <button class="nav-btn" data-tab="scanner">
+        <span>⌁</span><b>Scanner</b>
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-shell">
+    <section class="hero-row">
+      <div>
+        <p class="eyebrow">CAMPO GRANDE • MATO GROSSO DO SUL</p>
+        <h1>Encontre antes<br><span>que desapareça.</span></h1>
+      </div>
+      <div class="live-card">
+        <span class="live-dot"></span>
+        <div>
+          <strong id="scannerLabel">Scanner offline</strong>
+          <small id="scannerDetail">aguardando sinal</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="map-frame">
+      <div class="map-topbar">
+        <div class="signal-chip">
+          <span class="signal-icon">◉</span>
+          <div><strong>Pokémon</strong><small id="lastSignal">último sinal: —</small></div>
+        </div>
+        <label class="search-box">
+          <span>⌕</span>
+          <input id="searchInput" autocomplete="off" placeholder="Buscar Pokémon">
+        </label>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="map-side-controls">
+        <button id="locateBtn" title="Minha localização">⌖</button>
+        <button id="refreshBtn" title="Atualizar">↻</button>
+        <button id="zoomInBtn" title="Aproximar">+</button>
+        <button id="zoomOutBtn" title="Afastar">−</button>
+      </div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <div class="pokeball"></div>
+        <strong>Nenhum Pokémon detectado</strong>
+        <small>Assim que o scanner enviar sinais, eles aparecem aqui.</small>
+      </div>
+
+      <div class="map-footer">
+        <div class="count-pill"><b id="spawnCount">0</b><span>ativos</span></div>
+        <div class="count-pill favorite-count"><b id="favoriteCount">0</b><span>favoritos</span></div>
+        <div class="updated-pill">Atualizado <b id="updatedAgo">agora</b></div>
+      </div>
+    </section>
+
+    <section class="action-dock">
+      <button class="dock-btn" id="favoriteTabBtn"><span>★</span> FAVORITOS</button>
+      <button class="dock-btn live" id="liveBtn"><span>◉</span> LIVE</button>
+      <button class="dock-btn primary" id="filterBtn">FILTROS <span>⚙</span></button>
+    </section>
+  </main>
+
+  <aside class="sheet" id="filterSheet" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <div><p class="eyebrow">PERSONALIZAR RADAR</p><h2>Filtros</h2></div>
+        <button class="close-sheet" data-close="filterSheet">×</button>
+      </div>
+
+      <div class="filter-grid">
+        <label class="toggle-row">
+          <div><strong>Somente favoritos</strong><small>Mostra apenas espécies marcadas com ★</small></div>
+          <input type="checkbox" id="onlyFavorites"><span class="toggle"></span>
+        </label>
+        <label class="toggle-row">
+          <div><strong>Somente recentes</strong><small>Oculta sinais com mais de 10 minutos</small></div>
+          <input type="checkbox" id="onlyFresh"><span class="toggle"></span>
+        </label>
+      </div>
+
+      <label class="range-row">
+        <div><strong>Distância máxima</strong><output id="distanceOut">25 km</output></div>
+        <input id="distanceRange" type="range" min="1" max="50" value="25">
+      </label>
+
+      <label class="range-row">
+        <div><strong>Confiança mínima</strong><output id="confidenceOut">50%</output></div>
+        <input id="confidenceRange" type="range" min="0" max="100" value="50">
+      </label>
+
+      <button class="wide-btn" id="notificationBtn">Ativar alertas de favoritos</button>
+    </div>
+  </aside>
+
+  <aside class="sheet" id="favoritesSheet" aria-hidden="true">
+    <div class="sheet-card tall">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <div><p class="eyebrow">SUA LISTA DE CAÇA</p><h2>Favoritos</h2></div>
+        <button class="close-sheet" data-close="favoritesSheet">×</button>
+      </div>
+      <div class="favorite-add">
+        <input id="favoriteInput" placeholder="Ex.: Gible">
+        <button id="addFavoriteBtn">Adicionar ★</button>
+      </div>
+      <div id="favoriteList" class="favorite-list"></div>
+    </div>
+  </aside>
+
+  <aside class="sheet" id="scannerSheet" aria-hidden="true">
+    <div class="sheet-card">
+      <div class="sheet-handle"></div>
+      <div class="sheet-title">
+        <div><p class="eyebrow">ALT SCANNER</p><h2>Status</h2></div>
+        <button class="close-sheet" data-close="scannerSheet">×</button>
+      </div>
+      <div class="scanner-panel">
+        <div class="scanner-orb"><span></span></div>
+        <div>
+          <strong id="scannerSheetLabel">Offline</strong>
+          <p id="scannerSheetDetail">Nenhum sinal recente do scanner.</p>
+        </div>
+      </div>
+      <div class="scanner-metrics">
+        <div><b id="metricPoint">—</b><span>ponto</span></div>
+        <div><b id="metricCycle">—</b><span>ciclo</span></div>
+        <div><b id="metricLatLon">—</b><span>posição</span></div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
