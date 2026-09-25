@@ -1,0 +1,41 @@
+server:
+  url: "http://192.168.0.10:8787"
+  token: "troque-este-token"
+
+device:
+  adb: "adb"
+  serial: ""
+  location_driver: "mock_app"
+  mock_action: "br.com.radarms.mocklocation.SET_LOCATION"
+
+scan:
+  north: -20.355
+  south: -20.525
+  west: -54.745
+  east: -54.545
+  spacing_m: 250
+  dwell_seconds: 10
+  loop: true
+  max_points: 0
+
+ui:
+  nearby_button_x: 0.92
+  nearby_button_y: 0.82
+  open_wait_seconds: 2.0
+  close_with_back: true
+  cells:
+    - [0.04,0.15,0.33,0.38]
+    - [0.35,0.15,0.64,0.38]
+    - [0.67,0.15,0.96,0.38]
+    - [0.04,0.39,0.33,0.62]
+    - [0.35,0.39,0.64,0.62]
+    - [0.67,0.39,0.96,0.62]
+    - [0.04,0.63,0.33,0.86]
+    - [0.35,0.63,0.64,0.86]
+    - [0.67,0.63,0.96,0.86]
+
+classifier:
+  model: "imzynoxprince/pokemons-image-classifier-gen1-gen9"
+  confidence: 0.70
+  pokemon_crop: [0.02,0.00,0.62,0.78]
+  save_unknowns: true
