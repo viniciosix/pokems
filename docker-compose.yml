@@ -1,0 +1,12 @@
+services:
+  pokems:
+    build: ./server
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - PORT=8787
+      - RADARMS_TOKEN=${RADARMS_TOKEN:-troque-este-token}
+      - SPAWN_TTL_MINUTES=${SPAWN_TTL_MINUTES:-20}
+    volumes:
+      - ./server/data:/app/data
